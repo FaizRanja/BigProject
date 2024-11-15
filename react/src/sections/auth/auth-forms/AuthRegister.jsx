@@ -1,37 +1,34 @@
 import { useEffect, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-
-// material-ui
-import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
-import Button from '@mui/material/Button';
-import FormControl from '@mui/material/FormControl';
-import Stack from '@mui/material/Stack';
-import Link from '@mui/material/Link';
-import InputLabel from '@mui/material/InputLabel';
-import Typography from '@mui/material/Typography';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputAdornment from '@mui/material/InputAdornment';
-import FormHelperText from '@mui/material/FormHelperText';
-
-// third-party
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import {
+  Box,
+  Grid,
+  Button,
+  FormControl,
+  Stack,
+  Link,
+  InputLabel,
+  Typography,
+  OutlinedInput,
+  InputAdornment,
+  FormHelperText,
+} from '@mui/material';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-
-// project-imports
 import IconButton from 'components/@extended/IconButton';
 import AnimateButton from 'components/@extended/AnimateButton';
-
 import { strengthColor, strengthIndicator } from 'utils/password-strength';
-
-// assets
 import { Eye, EyeSlash } from 'iconsax-react';
-
-// ============================|| JWT - REGISTER ||============================ //
+import { registerUser } from 'store/reducers/User';
+import { useDispatch, useSelector } from 'react-redux';
 
 export default function AuthRegister() {
   const [level, setLevel] = useState();
   const [showPassword, setShowPassword] = useState(false);
+  const { isAuthenticated, isLoading, error } = useSelector((state) => state.authReducier);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -47,7 +44,10 @@ export default function AuthRegister() {
 
   useEffect(() => {
     changePassword('');
-  }, []);
+    if (isAuthenticated) {
+      navigate('/'); // Redirect to home/dashboard if authenticated
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <>
@@ -58,14 +58,26 @@ export default function AuthRegister() {
           email: '',
           company: '',
           password: '',
-          submit: null
+          submit: null,
         }}
         validationSchema={Yup.object().shape({
           firstname: Yup.string().max(255).required('First Name is required'),
           lastname: Yup.string().max(255).required('Last Name is required'),
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-          password: Yup.string().max(255).required('Password is required')
+          password: Yup.string().max(255).required('Password is required'),
         })}
+        onSubmit={async (values, { setErrors, setSubmitting }) => {
+          try {
+            const result = await dispatch(registerUser(values)).unwrap();
+            if (result) {
+              navigate('/'); // Redirect to home/dashboard if registration is successful
+            }
+          } catch (error) {
+            setErrors({ submit: error.message || 'Registration failed' });
+          } finally {
+            setSubmitting(false);
+          }
+        }}
       >
         {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
           <form noValidate onSubmit={handleSubmit}>
@@ -74,8 +86,8 @@ export default function AuthRegister() {
                 <Stack spacing={1}>
                   <InputLabel htmlFor="firstname-signup">First Name*</InputLabel>
                   <OutlinedInput
-                    id="firstname-login"
-                    type="firstname"
+                    id="firstname-signup"
+                    type="text"
                     value={values.firstname}
                     name="firstname"
                     onBlur={handleBlur}
@@ -86,82 +98,70 @@ export default function AuthRegister() {
                   />
                 </Stack>
                 {touched.firstname && errors.firstname && (
-                  <FormHelperText error id="helper-text-firstname-signup">
-                    {errors.firstname}
-                  </FormHelperText>
+                  <FormHelperText error>{errors.firstname}</FormHelperText>
                 )}
               </Grid>
+
               <Grid item xs={12} md={6}>
                 <Stack spacing={1}>
                   <InputLabel htmlFor="lastname-signup">Last Name*</InputLabel>
                   <OutlinedInput
-                    fullWidth
-                    error={Boolean(touched.lastname && errors.lastname)}
                     id="lastname-signup"
-                    type="lastname"
+                    type="text"
                     value={values.lastname}
                     name="lastname"
                     onBlur={handleBlur}
                     onChange={handleChange}
                     placeholder="Doe"
-                    inputProps={{}}
+                    fullWidth
+                    error={Boolean(touched.lastname && errors.lastname)}
                   />
                 </Stack>
                 {touched.lastname && errors.lastname && (
-                  <FormHelperText error id="helper-text-lastname-signup">
-                    {errors.lastname}
-                  </FormHelperText>
+                  <FormHelperText error>{errors.lastname}</FormHelperText>
                 )}
               </Grid>
+
               <Grid item xs={12}>
                 <Stack spacing={1}>
                   <InputLabel htmlFor="company-signup">Company</InputLabel>
                   <OutlinedInput
-                    fullWidth
-                    error={Boolean(touched.company && errors.company)}
                     id="company-signup"
+                    type="text"
                     value={values.company}
                     name="company"
                     onBlur={handleBlur}
                     onChange={handleChange}
                     placeholder="Demo Inc."
-                    inputProps={{}}
+                    fullWidth
                   />
                 </Stack>
-                {touched.company && errors.company && (
-                  <FormHelperText error id="helper-text-company-signup">
-                    {errors.company}
-                  </FormHelperText>
-                )}
               </Grid>
+
               <Grid item xs={12}>
                 <Stack spacing={1}>
                   <InputLabel htmlFor="email-signup">Email Address*</InputLabel>
                   <OutlinedInput
-                    fullWidth
-                    error={Boolean(touched.email && errors.email)}
-                    id="email-login"
+                    id="email-signup"
                     type="email"
                     value={values.email}
                     name="email"
                     onBlur={handleBlur}
                     onChange={handleChange}
                     placeholder="demo@company.com"
-                    inputProps={{}}
+                    fullWidth
+                    error={Boolean(touched.email && errors.email)}
                   />
                 </Stack>
                 {touched.email && errors.email && (
-                  <FormHelperText error id="helper-text-email-signup">
-                    {errors.email}
-                  </FormHelperText>
+                  <FormHelperText error>{errors.email}</FormHelperText>
                 )}
               </Grid>
+
               <Grid item xs={12}>
                 <Stack spacing={1}>
                   <InputLabel htmlFor="password-signup">Password</InputLabel>
                   <OutlinedInput
-                    fullWidth
-                    error={Boolean(touched.password && errors.password)}
                     id="password-signup"
                     type={showPassword ? 'text' : 'password'}
                     value={values.password}
@@ -171,6 +171,9 @@ export default function AuthRegister() {
                       handleChange(e);
                       changePassword(e.target.value);
                     }}
+                    placeholder="******"
+                    fullWidth
+                    error={Boolean(touched.password && errors.password)}
                     endAdornment={
                       <InputAdornment position="end">
                         <IconButton
@@ -184,19 +187,22 @@ export default function AuthRegister() {
                         </IconButton>
                       </InputAdornment>
                     }
-                    placeholder="******"
-                    inputProps={{}}
                   />
                 </Stack>
                 {touched.password && errors.password && (
-                  <FormHelperText error id="helper-text-password-signup">
-                    {errors.password}
-                  </FormHelperText>
+                  <FormHelperText error>{errors.password}</FormHelperText>
                 )}
                 <FormControl fullWidth sx={{ mt: 2 }}>
                   <Grid container spacing={2} alignItems="center">
                     <Grid item>
-                      <Box sx={{ bgcolor: level?.color, width: 85, height: 8, borderRadius: '7px' }} />
+                      <Box
+                        sx={{
+                          bgcolor: level?.color,
+                          width: 85,
+                          height: 8,
+                          borderRadius: '7px',
+                        }}
+                      />
                     </Grid>
                     <Grid item>
                       <Typography variant="subtitle1" fontSize="0.75rem">
@@ -206,26 +212,37 @@ export default function AuthRegister() {
                   </Grid>
                 </FormControl>
               </Grid>
+
               <Grid item xs={12}>
                 <Typography variant="body2">
                   By Signing up, you agree to our &nbsp;
-                  <Link variant="subtitle2" component={RouterLink} to="#">
+                  <Link component={RouterLink} to="#" variant="subtitle2">
                     Terms of Service
                   </Link>
                   &nbsp; and &nbsp;
-                  <Link variant="subtitle2" component={RouterLink} to="#">
+                  <Link component={RouterLink} to="#" variant="subtitle2">
                     Privacy Policy
                   </Link>
                 </Typography>
               </Grid>
+
               {errors.submit && (
                 <Grid item xs={12}>
                   <FormHelperText error>{errors.submit}</FormHelperText>
                 </Grid>
               )}
+
               <Grid item xs={12}>
                 <AnimateButton>
-                  <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="primary">
+                  <Button
+                    disableElevation
+                    disabled={isSubmitting}
+                    fullWidth
+                    size="large"
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                  >
                     Create Account
                   </Button>
                 </AnimateButton>

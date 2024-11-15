@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // material-ui
 import Grid from '@mui/material/Grid';
@@ -13,7 +13,7 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 import FormHelperText from '@mui/material/FormHelperText';
 import FormControlLabel from '@mui/material/FormControlLabel';
-
+import { useDispatch, useSelector } from 'react-redux'; 
 // third-party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
@@ -24,12 +24,16 @@ import AnimateButton from 'components/@extended/AnimateButton';
 
 // assets
 import { Eye, EyeSlash } from 'iconsax-react';
+import { loginUser } from 'store/reducers/User';
+import { useNavigate } from 'react-router';
 
 // ============================|| JWT - LOGIN ||============================ //
 
 export default function AuthLogin() {
   const [checked, setChecked] = useState(false);
-
+  const { isAuthenticated, isLoading, error } = useSelector((state) => state.authReducier);
+  const navigate = useNavigate();
+  const dispath=useDispatch()
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
@@ -38,6 +42,12 @@ export default function AuthLogin() {
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/'); // Redirect to home/dashboard if authenticated
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <>
@@ -51,6 +61,15 @@ export default function AuthLogin() {
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
           password: Yup.string().max(255).required('Password is required')
         })}
+        onSubmit={(values, { setErrors, setSubmitting }) => {
+          // Simulate API call or perform your registration logic here
+      dispath (loginUser(values)).catch(error => {
+              setErrors({ submit: error.message });
+              setSubmitting(false);
+          });
+          console.log(values); // Replace with API call
+          setSubmitting(false);
+        }}
       >
         {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
           <form noValidate onSubmit={handleSubmit}>

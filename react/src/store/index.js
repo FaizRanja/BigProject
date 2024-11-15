@@ -4,11 +4,14 @@ import { useDispatch as useAppDispatch, useSelector as useAppSelector } from 're
 
 // project-imports
 import reducers from './reducers';
+import authReducer from './reducers/User';
 
 // ==============================|| REDUX TOOLKIT - MAIN STORE ||============================== //
 
 const store = configureStore({
-  reducer: reducers
+  reducer: reducers,
+  // auth: authReducer,
+  
 });
 
 const { dispatch } = store;

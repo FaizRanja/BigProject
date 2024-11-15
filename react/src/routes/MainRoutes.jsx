@@ -1,9 +1,11 @@
+// MainRoutes.js
 import { lazy } from 'react';
 
 // project-imports
 import MainLayout from 'layout/Dashboard/index';
 import CommonLayout from 'layout/CommonLayout/index';
 import Loadable from 'components/Loadable';
+import AuthGuard from 'protectedroute/Protected';
 
 // render - dashboard
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/default')));
@@ -22,7 +24,7 @@ const MainRoutes = {
   children: [
     {
       path: '/',
-      element: <MainLayout />,
+      element: <AuthGuard><MainLayout /></AuthGuard>, // Protected route
       children: [
         {
           path: '/',
@@ -40,7 +42,7 @@ const MainRoutes = {
     },
     {
       path: '/auth',
-      element: <CommonLayout />,
+      element: <CommonLayout />, // Public route
       children: [
         {
           path: 'login',

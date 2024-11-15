@@ -17,9 +17,16 @@ import imgFacebook from 'assets/images/auth/facebook.svg';
 import imgTwitter from 'assets/images/auth/twitter.svg';
 import imgGoogle from 'assets/images/auth/google.svg';
 
+
 // ================================|| REGISTER ||================================ //
 
+
+
 export default function Register() {
+ 
+
+
+
   return (
     <AuthWrapper>
       <Grid container spacing={3}>
@@ -52,7 +59,7 @@ export default function Register() {
         </Grid>
         <Grid item xs={12}>
           <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: { xs: -0.5, sm: 0.5 } }}>
-            <Typography variant="h3">Sign up</Typography>
+            <Typography variant="h3"  >Sign up</Typography>
             <Typography component={Link} to={'/auth/login'} variant="body1" sx={{ textDecoration: 'none' }} color="primary">
               Already have an account?
             </Typography>
