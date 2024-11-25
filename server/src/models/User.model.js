@@ -5,17 +5,7 @@ const validator = require('validator');
 const crypto = require('crypto'); // For generating random secret key
 
 const UserSchema = new mongoose.Schema({
-  firstname: {
-    type: String,
-    required: [true, "Please enter your name"],
-    unique: true,
-  },
-  lastname: {
-    type: String,
-    required: [true, "Please enter your name"],
-    unique: true,
-  },
-  company: {
+  name: {
     type: String,
     required: [true, "Please enter your name"],
     unique: true,

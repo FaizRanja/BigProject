@@ -7,11 +7,12 @@ const ApiErrorHandler = require("../utils/ApiError.js");
 // const apifeatucher = require("../utils/Search.js");
 
 
+
 exports.Register = AsyncHandler(async (req, res, next) => {
-  const { firstname, lastname,company, email, password } = req.body;
+  const { name, email, password } = req.body;
 
   // Check if any field is empty
-  if ( !email || !password || !firstname || !lastname || !company) {
+  if (!name || !email || !password) {
     return next(new ApiErrorHandler(400, "All fields are required"));
   }
 
@@ -26,9 +27,7 @@ exports.Register = AsyncHandler(async (req, res, next) => {
 
   // Create a new user with the generated secret key
   const user = await User.create({
-    firstname,
-    lastname,
-    company,
+    name,
     email,
     password,
     secretKey, // Pass the generated secret key here
@@ -40,13 +39,20 @@ exports.Register = AsyncHandler(async (req, res, next) => {
 
 exports.Login = AsyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
+
   if ([email, password].some((field) => field?.trim() === "")) {
     throw next(new ApiErrorHandler(400, "All fields are required"));
   }
+
+  
+  
+  
   const user = await User.findOne({ email }).select('+password');
+
   if (!user) {
     throw next(new ApiErrorHandler(400, "User not found"));
   }
+
   const isPasswordMatch = await user.comparePassword(password);
   if (!isPasswordMatch) {
     throw next(new ApiErrorHandler(401, "Invalid email or password"));
@@ -66,62 +72,41 @@ exports.Logout=AsyncHandler(async(req,res,next)=>{
     message:" User  Logged Out successfully",
   })
 })
-// Get all Loguin user 
-exports.getLoginUser=AsyncHandler(async(req,res,next)=>{
-try {
-  const usercount=await User.countDocuments()
-  res.status(200).json({
-    success:true,
-    count:usercount,
-  })
-} catch (error) {
-  console.log('Error feaching user '+error)
-  res.status(500).json({
-    success:false,
-    error: "Server Error",
-  })
-}
-})
-
-exports.getUser = AsyncHandler(async (req, res, next) => {
-  try {
-    const { keyword, date } = req.query;
-
-    // Build query
-    const query = {};
-    if (keyword) {
-      query.$or = [
-        { senderNumber: { $regex: keyword, $options: 'i' } },
-        { recipientNumber: { $regex: keyword, $options: 'i' } },
-        { messageContent: { $regex: keyword, $options: 'i' } }
-      ];
-    }
-    if (date) {
-      // Parse date to ensure it's in the correct format
-      const parsedDate = new Date(date);
-      if (!isNaN(parsedDate.getTime())) { // Check if date is valid
-        query.timestamp = { $gte: parsedDate };
-      }
-    }
-
-    // Fetch messages based on the constructed query and sort them by timestamp in descending order
-    const scans = await User.find(query).sort({ timestamp: -1 });
-
-    res.json({ scans });
-  } catch (error) {
-    console.error('Error fetching User:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
 // get all register user data
 exports.getAllRegisterUser = async (req, res) => {
-  const user = req.user; // req.user is set by the authMiddleware
-  res.status(200).json({
-    success: true,
-    user: { secretKey: user.secretKey }
-  });
+  try {
+    const user = req.user; // req.user is set by the authMiddleware
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    const { secretKey } = user; // Extract the secretKey from the user object
+    return res.status(200).json({
+      success: true,
+      user: { secretKey },
+      instructions: `
+        <script src="http://localhost:4000/chatbot.js?key=${secretKey}"></script>
+        <link rel="stylesheet" href="http://localhost:4000/chatbot.css?key=${secretKey}">
+      `,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching user details",
+      error: error.message,
+    });
+  }
 };
+
+
+
+
+
+
+
+
 
 
 
