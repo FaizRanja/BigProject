@@ -108,8 +108,3 @@ exports.getAllRegisterUser = async (req, res) => {
 
 
 
-
-
-
-
-
