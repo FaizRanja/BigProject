@@ -1,4 +1,4 @@
-const { app } = require("./app");
+const {  server } = require("./app");
 const Databaseconnec = require("./Db/Dbconnection");
 const dotenv = require("dotenv");
 
@@ -6,9 +6,11 @@ dotenv.config();
 
 const port = process.env.PORT || 3001;
 
+
+
 Databaseconnec()
   .then(() => {
-    app.listen(port, () => {
+    server.listen(port, () => {
       console.log(`Server is running on port ${port}`);
     });
   })

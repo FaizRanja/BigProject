@@ -48,16 +48,13 @@ exports.Login = AsyncHandler(async (req, res, next) => {
   
   
   const user = await User.findOne({ email }).select('+password');
-
   if (!user) {
     throw next(new ApiErrorHandler(400, "User not found"));
   }
-
   const isPasswordMatch = await user.comparePassword(password);
   if (!isPasswordMatch) {
     throw next(new ApiErrorHandler(401, "Invalid email or password"));
   }
-
   sendToken(user, 200, res);
 });
 
