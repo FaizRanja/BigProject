@@ -2,13 +2,14 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 const cors = require("cors");
-const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const User = require("./models/User.model");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
 const MessageModel = require("./models/message"); // Renamed to MessageModel
+
+
 
 dotenv.config();
 
@@ -26,6 +27,8 @@ const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173", // Your React frontend URL
     methods: ["GET", "POST"],
+    credentials: true,
+
   },
 });
 
@@ -36,37 +39,6 @@ app.use(cookieParser());
 app.use(cors());
 // Static files
 app.use(express.static(path.join(__dirname, "dist")));
-// Multer setup for handling file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "./public/temp");
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
-  },
-});
-const upload = multer({ storage });
-
-// Cloudinary upload API
-app.post("/api/upload", upload.single("file"), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "No file uploaded" });
-  }
-  try {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { resource_type: "auto" },
-      (error, result) => {
-        if (error) {
-          return res.status(500).json({ error: error.message });
-        }
-        res.json({ url: result.secure_url });
-      }
-    );
-    req.file.stream.pipe(uploadStream);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to upload file" });
-  }
-});
 
 // Real-time chat functionality
 const onlineUsers = new Map();

@@ -1,19 +1,21 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const validator = require('validator');
-const crypto = require('crypto'); // For generating random secret key
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const validator = require("validator");
 
 const UserSchema = new mongoose.Schema({
-  name: {
+  firstName: {
     type: String,
-    required: [true, "Please enter your name"],
-    unique: true,
+    required: [true, "Please enter your first name"],
+  },
+  lastName: {
+    type: String,
+    required: [true, "Please enter your last name"],
   },
   email: {
     type: String,
     required: [true, "Please enter your email"],
-    unique: true,
+    unique: true, // Ensure email is unique
     validate: [validator.isEmail, "Please enter a valid email"],
   },
   password: {
@@ -21,11 +23,11 @@ const UserSchema = new mongoose.Schema({
     required: [true, "Please enter your password"],
     maxLength: [30, "Password should not exceed 30 characters"],
     minLength: [8, "Password should be at least 8 characters"],
-    select: false, // Prevent the password from being returned in queries
+    select: false,
   },
   secretKey: {
     type: String,
-    required: true, // Secret key is required
+    required: true,
   },
   createdAt: {
     type: Date,
@@ -50,7 +52,7 @@ UserSchema.methods.comparePassword = async function (password) {
 // Generate JWT token
 UserSchema.methods.getJWTToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '1d',
+    expiresIn: process.env.JWT_EXPIRE || "1d",
   });
 };
 
@@ -60,5 +62,3 @@ UserSchema.methods.validateSecretKey = function (inputSecretKey) {
 };
 
 module.exports = mongoose.model("User", UserSchema);
-
-

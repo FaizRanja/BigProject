@@ -11,7 +11,7 @@ const port = process.env.PORT || 3001;
 Databaseconnec()
   .then(() => {
     server.listen(port, () => {
-      console.log(`Server is running on port ${port}`);
+      console.log(`Server is running on port  http://localhost:${port}`);
     });
   })
   .catch((error) => {
