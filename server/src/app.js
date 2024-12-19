@@ -33,9 +33,11 @@ const io = new Server(server, {
 });
 
 // Middleware
-app.use(express.json({ limit: "20kb" }));
-app.use(express.urlencoded({ extended: true, limit: "20kb" }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" , parameterLimit:50000 }));
+// app.use(express.bodyParser({limit: '50mb'}));
 app.use(cookieParser());
+
 app.use(cors());
 // Static files
 app.use(express.static(path.join(__dirname, "dist")));
@@ -117,9 +119,12 @@ app.get("/chatbot.css", validateApiKey, (req, res) => {
   res.sendFile(path.join(__dirname, "chatbot.css")); // Path to chatbot.css
 });
 
+const userchatbot=require("./routes/chatbot.routes")
+
+
 // Import routes
 const userRoutes = require("./routes/User.routes");
 app.use("/api/v1/user", userRoutes);
-
+app.use("/api/v1/f1", userchatbot )
 // Export app for use in server.js
 module.exports = { server };

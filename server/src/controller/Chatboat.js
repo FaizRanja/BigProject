@@ -1,34 +1,44 @@
-const message = require("../models/message");
-const AsynicHandler = require("../utils/AsynicHandler");
+const AsyncHandler = require("../utils/AsynicHandler");
+const ChatSign = require("../models/UserChatSignup");
+const cloudinary = require("cloudinary").v2;
 
-exports.sendMessage=AsynicHandler(async(req,res,next)=>{
-
-        try {
-        const messages = await message.find().sort({ timestamp: -1 }).limit(50);
-        res.json(messages);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-
-})
-
-// Socket.IO setup
-io.on("connection", (socket) => {
-    console.log("A user connected:", socket.id);
-
-    // Listen for incoming messages
-    socket.on("chatMessage", async (data) => {
-        const { username, message } = data;
-
-        // Save message to MongoDB
-        const newMessage = new message({ username, message });
-        await newMessage.save();
-
-        // Broadcast the message to all clients
-        io.emit("chatMessage", data);
+exports.UserChatSignup = AsyncHandler(async (req, res, next) => {
+  const { UserName, email, avatar } = req.body;
+  if (!UserName || !email || !avatar) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+  // Check if the user already exists
+  const existingUser = await ChatSign.findOne({ email });
+  if (existingUser) {
+    return res.status(400).json({ error: "User with this email already exists" });
+  }
+  // Upload avatar to Cloudinary
+  let myCloud;
+  try {
+    myCloud = await cloudinary.uploader.upload(avatar, {
+      folder: "avatars",
+      width: 150,
+      crop: "scale",
     });
+  } catch (error) {
+    console.error("Cloudinary Upload Error:", error);
+    return res.status(500).json({ error: "Failed to upload avatar to Cloudinary" });
+  }
 
-    socket.on("disconnect", () => {
-        console.log("A user disconnected:", socket.id);
-    });
+  // Create user in the database
+  const user = await ChatSign.create({
+    UserName,
+    email,
+    avatar: {
+      public_id: myCloud.public_id,
+      url: myCloud.secure_url,
+    },
+  });
+
+  // Send response
+  res.status(201).json({
+    success: true,
+    message: "User created successfully",
+    user,
+  });
 });

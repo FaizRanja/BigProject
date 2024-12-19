@@ -4,15 +4,30 @@ const sendToken = require('../utils/sendToken'); // Ensure this is the correct i
 const crypto = require('crypto');
 const ApiErrorHandler = require("../utils/ApiError.js");
 // const cloudinary = require("cloudinary").v2;
+const cloudinary = require("cloudinary").v2;
 
 // User Registration
 exports.Register = AsyncHandler(async (req, res, next) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password ,  avatar } = req.body;
+
 
   // Validate required fields
-  if (!firstName || !lastName || !email || !password) {
+  if (!firstName || !lastName || !email || !password  || !avatar ) {
     return next(new ApiErrorHandler(400, "All fields are required"));
   }
+
+  let myCloud;
+  try {
+    myCloud = await cloudinary.uploader.upload(avatar, {
+      folder: "avatars",
+      width: 150,
+      crop: "scale",
+    });
+  } catch (error) {
+    console.error("Cloudinary Upload Error:", error);
+    return res.status(500).json({ error: "Failed to upload avatar to Cloudinary" });
+  }
+
 
   // Check if user already exists
   const existingUser = await User.findOne({ email });
@@ -30,6 +45,10 @@ exports.Register = AsyncHandler(async (req, res, next) => {
     email,
     password,
     secretKey,
+    avatar: {
+      public_id: myCloud.public_id,
+      url: myCloud.secure_url,
+    },
   });
 
   // Send token response
@@ -63,7 +82,7 @@ exports.Login = AsyncHandler(async (req, res, next) => {
 
 
 // User Logout
-exports.Logout = AsyncHandler(async (req, res) => {
+exports.Logout = AsyncHandler(async (_req, res) => {
   res.cookie("token", null, {
     expires: new Date(Date.now()),
     httpOnly: true,
@@ -160,7 +179,7 @@ exports.updatePassword = AsyncHandler(async (req, res, next) => {
 
 // Get User Deatils 
 
-exports.getUserdatils=AsyncHandler(async(req,res,next)=>{
+exports.getUserdatils=AsyncHandler(async(req,res,_next)=>{
   const user=await User.findById(req.user.id)
   res.status(200).json({
     success:true,
@@ -168,6 +187,10 @@ exports.getUserdatils=AsyncHandler(async(req,res,next)=>{
   })
   
   })
+
+
+  
+
   
 
 

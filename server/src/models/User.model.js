@@ -25,6 +25,16 @@ const UserSchema = new mongoose.Schema({
     minLength: [8, "Password should be at least 8 characters"],
     select: false,
   },
+  avatar: {
+    public_id: {
+      type: String,
+      required: true,
+    },
+    url: {
+      type: String,
+      required: true,
+    },
+  },
   secretKey: {
     type: String,
     required: true,
@@ -33,6 +43,8 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+
+  
 });
 
 // Hash password before saving
