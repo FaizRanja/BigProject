@@ -4,6 +4,7 @@ const cloudinary = require("cloudinary").v2;
 
 exports.UserChatSignup = AsyncHandler(async (req, res, next) => {
   const { UserName, email, avatar } = req.body;
+  console.log(UserName,email,avatar)
   if (!UserName || !email || !avatar) {
     return res.status(400).json({ error: "All fields are required" });
   }
@@ -12,6 +13,8 @@ exports.UserChatSignup = AsyncHandler(async (req, res, next) => {
   if (existingUser) {
     return res.status(400).json({ error: "User with this email already exists" });
   }
+
+  
   // Upload avatar to Cloudinary
   let myCloud;
   try {
@@ -19,6 +22,8 @@ exports.UserChatSignup = AsyncHandler(async (req, res, next) => {
       folder: "avatars",
       width: 150,
       crop: "scale",
+
+
     });
   } catch (error) {
     console.error("Cloudinary Upload Error:", error);
